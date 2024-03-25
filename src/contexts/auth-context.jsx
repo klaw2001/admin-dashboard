@@ -13,6 +13,10 @@ export const AuthProvider = ({ children }) => {
   const [message, setMessage] = useState(null);
   const [customers, setCustomers] = useState(null);
   const [accessToken, setAccessToken] = useState(null);
+  const [loggedinUser, setLoggedinUser] = useState({});
+  const [transactions , setTransactions] = useState([])
+  const [loading, setLoading] = useState(true);
+
   const API = 'https://chatsapp-nw05.onrender.com/api/v1';
   const [socket, setSocket] = useState(null);
   useEffect(() => {
@@ -88,6 +92,7 @@ export const AuthProvider = ({ children }) => {
         },
       });
       setCustomers(res.data.data);
+      setLoading(false);
       return res;
     } catch (error) {
       console.error('Error fetching all customers:', error, accessToken);
@@ -182,6 +187,23 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const getSingleTransactionList = async (userId) => {
+    try {
+      const res = await axios.get(`${API}/tasks/task/${userId}`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache', // Add this header to avoid caching
+        'Pragma': 'no-cache', 
+        },
+      });
+      setTransactions(res.data)
+      setLoading(false);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   const authValue = useMemo(
     () => ({
       login,
@@ -196,6 +218,9 @@ export const AuthProvider = ({ children }) => {
       chatUsers,
       chats,
       setChats,
+      loading,
+      getSingleTransactionList,
+      transactions
     }),
     [
       login,
@@ -209,6 +234,8 @@ export const AuthProvider = ({ children }) => {
       chatUsers,
       chats,
       setChats,
+      getSingleTransactionList,
+      transactions
     ]
   );
 

@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { Box, Button, Divider, Typography } from '@mui/material';
+import { Avatar, Box, Button, Divider, Typography } from '@mui/material';
 import Modal from '@mui/material/Modal';
 import TextField from '@mui/material/TextField';
 import Autocomplete from '@mui/material/Autocomplete';
 import { countries } from '../user/utils';
 import Checkbox from '@mui/material/Checkbox';
 import Iconify from 'src/components/iconify';
+import { useAuth } from 'src/contexts/auth-context';
 
 const style = {
   position: 'absolute',
@@ -20,8 +21,12 @@ const style = {
 };
 
 const FormModal = () => {
+  const { getAllCustomers, customers , loading } = useAuth();
+  React.useEffect(() => {
+    getAllCustomers();
+  }, []);
   const [filePreview, setFilePreview] = useState(null);
-  const handleCountryChange = (event, value) => {
+  const handleUserChange = (event, value) => {
     console.log(value); // Log the selected country object
   };
   const handleFileChange = (event) => {
@@ -55,19 +60,21 @@ const FormModal = () => {
           <Autocomplete
             id="country-select-demo"
             sx={{ paddingBottom: '10px' }}
-            options={countries}
+            options={customers}
             autoHighlight
-            getOptionLabel={(option) => option.label}
+            getOptionLabel={(option) => option.username}
             renderOption={(props, option) => (
-              <Box component="li" sx={{ '& > img': { mr: 2, flexShrink: 0 } }} {...props}>
-                <img
+              <Box component="li" sx={{ '& > img': { mr: 2, flexShrink: 0 , gap:"10px"} }} {...props}>
+                {/* <img
                   loading="lazy"
                   width="20"
-                  srcSet={`https://flagcdn.com/w40/${option.code.toLowerCase()}.png 2x`}
-                  src={`https://flagcdn.com/w20/${option.code.toLowerCase()}.png`}
+                  // srcSet={`https://flagcdn.com/w40/${option.code.toLowerCase()}.png 2x`}
+                  src={option.avatar}
                   alt=""
-                />
-                {option.label} ({option.code}) +{option.phone}
+                /> */}
+                <Avatar alt={option.username} src={option.avatar}/>
+                {option.username} 
+                {/* ({option.code}) +{option.phone} */}
               </Box>
             )}
             renderInput={(params) => (
@@ -80,7 +87,7 @@ const FormModal = () => {
                 }}
               />
             )}
-            onChange={handleCountryChange}
+            onChange={handleUserChange}
           />
 
           <TextField
