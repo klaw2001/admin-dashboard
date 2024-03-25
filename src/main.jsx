@@ -44,9 +44,9 @@ root.render(
       <BrowserRouter>
         <Suspense>
           <AuthProvider>
-            <ChatProvider>
+            {/* <ChatProvider> */}
               <App />
-            </ChatProvider>
+            {/* </ChatProvider> */}
           </AuthProvider>
         </Suspense>
       </BrowserRouter>

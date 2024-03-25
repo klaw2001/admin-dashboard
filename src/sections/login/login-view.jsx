@@ -22,7 +22,6 @@ import Iconify from 'src/components/iconify';
 import { useAuth } from 'src/contexts/auth-context';
 import toast from 'react-hot-toast';
 import axios from 'axios';
-import { ChatState } from 'src/contexts/chatProvider';
 
 // ----------------------------------------------------------------------
 
@@ -33,28 +32,16 @@ export default function LoginView() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { setUser } = ChatState();
+  // const { setUser } = ChatState();
   const [showPassword, setShowPassword] = useState(false);
 
   const handleClick = async () => {
     const res = await login(email, password);
-    const config = {
-      headers: {
-        'Content-type': 'application/json',
-      },
-    };
 
-    const { data } = await axios.post(
-      'https://chats-app-admin.onrender.com/api/user/login',
-      { email, password },
-      config
-    );
-    console.log(data);
-
-    setUser(data);
-    localStorage.setItem('userInfo', JSON.stringify(data));
+    // setUser(res);
+    localStorage.setItem('userInfo', JSON.stringify(res));
     toast.success('Login Successfull');
-    if (res.statusCode === 200 || res.statusCode === 201) {
+    if (res.statusCode === 200) {
       router.push('/');
     }
   };

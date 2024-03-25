@@ -99,9 +99,9 @@ export const AuthProvider = ({ children }) => {
   const getAllAvailableUsers = async () => {
     try {
       // const accessToken = window.sessionStorage.getItem("accessToken");
-      const res = await axios.get(`${ENDPOINT}/api/user/`, {
+      const res = await axios.get(`${API}/chat-app/chats/users/`, {
         headers: {
-          Authorization: `Bearer ${user.token}`,
+          Authorization: `Bearer ${accessToken}`,
         },
       });
       setChatUsers(res.data.data);

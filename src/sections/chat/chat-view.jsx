@@ -56,7 +56,7 @@ export default function ChatView(props) {
   const [socketConnected, setSocketConnected] = React.useState(false);
   const [typing, setTyping] = React.useState(false);
   const [istyping, setIsTyping] = React.useState(false);
-  const { selectedChat, setSelectedChat, user, notification, setNotification } = ChatState();
+  // const { selectedChat, setSelectedChat, user, notification, setNotification } = ChatState();
   const [fetchAgain, setFetchAgain] = React.useState(false);
 
   const {

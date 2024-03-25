@@ -26,7 +26,7 @@ import { emptyRows, applyFilter, getComparator } from '../utils';
 // ----------------------------------------------------------------------
 
 export default function UserPage() {
-  const { getAllCustomers , customers} = useAuth();
+  const { getAllCustomers, customers } = useAuth();
 
   const [page, setPage] = useState(0);
 
@@ -43,8 +43,6 @@ export default function UserPage() {
   useEffect(() => {
     getAllCustomers();
   }, []);
-
-  console.log(customers)
 
   const handleSort = (event, id) => {
     const isAsc = orderBy === id && order === 'asc';
@@ -101,7 +99,7 @@ export default function UserPage() {
     filterName,
   });
 
-  const notFound = !dataFiltered.length && !!filterName;
+  const notFound = !dataFiltered?.length && !!filterName;
 
   return (
     <Container>
@@ -126,7 +124,7 @@ export default function UserPage() {
               <UserTableHead
                 order={order}
                 orderBy={orderBy}
-                rowCount={customers.length}
+                rowCount={customers?.length}
                 numSelected={selected.length}
                 onRequestSort={handleSort}
                 onSelectAllClick={handleSelectAllClick}
@@ -141,7 +139,7 @@ export default function UserPage() {
               />
               <TableBody>
                 {dataFiltered
-                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                  ?.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                   .map((row) => (
                     <UserTableRow
                       key={row._id}
@@ -158,7 +156,7 @@ export default function UserPage() {
 
                 <TableEmptyRows
                   height={77}
-                  emptyRows={emptyRows(page, rowsPerPage, customers.length)}
+                  emptyRows={emptyRows(page, rowsPerPage, customers?.length)}
                 />
 
                 {notFound && <TableNoData query={filterName} />}
@@ -170,7 +168,7 @@ export default function UserPage() {
         <TablePagination
           page={page}
           component="div"
-          count={customers.length}
+          count={customers?.length}
           rowsPerPage={rowsPerPage}
           onPageChange={handleChangePage}
           rowsPerPageOptions={[5, 10, 25]}
