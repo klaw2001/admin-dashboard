@@ -27,6 +27,7 @@ const TransactionListView = () => {
 
   const handleUserClick = (user) => {
     setSelectedUser(user);
+    console.log(user)
   };
   return (
     <>

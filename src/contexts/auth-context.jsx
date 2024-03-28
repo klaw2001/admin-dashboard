@@ -14,10 +14,11 @@ export const AuthProvider = ({ children }) => {
   const [customers, setCustomers] = useState(null);
   const [accessToken, setAccessToken] = useState(null);
   const [loggedinUser, setLoggedinUser] = useState({});
-  const [transactions , setTransactions] = useState([])
+  const [transactions, setTransactions] = useState([]);
+  const [myevents, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const API = 'https://chatsapp-nw05.onrender.com/api/v1';
+  const API = 'https://chats-app-0uxf.onrender.com/api/v1';
   const [socket, setSocket] = useState(null);
   useEffect(() => {
     const token = localStorage.getItem('accessToken');
@@ -194,16 +195,53 @@ export const AuthProvider = ({ children }) => {
           Authorization: `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
           'Cache-Control': 'no-cache', // Add this header to avoid caching
-        'Pragma': 'no-cache', 
+          Pragma: 'no-cache',
         },
       });
-      setTransactions(res.data)
+      setTransactions(res.data);
       setLoading(false);
     } catch (error) {
       console.log(error);
     }
   };
 
+  const getAllEvents = async () => {
+    try {
+      const res = await axios.get(`${API}/events/all-events`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache', // Add this header to avoid caching
+          Pragma: 'no-cache',
+        },
+      });
+      setEvents(res.data);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const updateEvent = async (id, formData) => {
+    
+    try {
+      const res = await axios.put(
+        `${API}/events/${id}/update`,
+        formData, // Pass formData directly
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-cache', // Add this header to avoid caching
+            Pragma: 'no-cache',
+          },
+        }
+      );
+      return res.data; // Return the updated event data
+    } catch (error) {
+      console.log(error);
+      throw error; // Throw the error to handle it in the component
+    }
+  };
   const authValue = useMemo(
     () => ({
       login,
@@ -220,7 +258,10 @@ export const AuthProvider = ({ children }) => {
       setChats,
       loading,
       getSingleTransactionList,
-      transactions
+      transactions,
+      getAllEvents,
+      myevents,
+      updateEvent
     }),
     [
       login,
@@ -235,7 +276,10 @@ export const AuthProvider = ({ children }) => {
       chats,
       setChats,
       getSingleTransactionList,
-      transactions
+      transactions,
+      getAllEvents,
+      myevents,
+      updateEvent
     ]
   );
 
