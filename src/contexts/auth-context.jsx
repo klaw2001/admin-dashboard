@@ -222,9 +222,9 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const getAllEvents = async () => {
+  const getAllEvents = async (userId) => {
     try {
-      const res = await axios.get(`${API}/events/all-events`, {
+      const res = await axios.get(`${API}/events/all-events/${userId}`, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
@@ -237,6 +237,22 @@ export const AuthProvider = ({ children }) => {
       console.log(error);
     }
   };
+
+  const createEvent = async(formData) =>{
+    try {
+      const res = await axios.post(`${API}/events/create-event`, formData , {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache', // Add this header to avoid caching
+          Pragma: 'no-cache',
+        },
+      })
+      return res.data
+    } catch (error) {
+      console.log(error)
+    }
+  }
 
   const updateEvent = async (id, formData) => {
     try {
@@ -279,6 +295,7 @@ export const AuthProvider = ({ children }) => {
       myevents,
       updateEvent,
       createTransaction,
+      createEvent
     }),
     [
       login,
@@ -298,6 +315,7 @@ export const AuthProvider = ({ children }) => {
       myevents,
       updateEvent,
       createTransaction,
+      createEvent
     ]
   );
 

@@ -1,7 +1,10 @@
 import { Box, Button, TextField, Typography } from '@mui/material';
 import React, { useState } from 'react';
+import toast from 'react-hot-toast';
+import { useAuth } from 'src/contexts/auth-context';
 
-const CreateEvent = ({onClose}) => {
+const CreateEvent = ({onClose , user}) => {
+  const { createEvent} = useAuth()
   const handleInputChange = (e) => {
     setFormData({
       ...formData,
@@ -14,6 +17,7 @@ const CreateEvent = ({onClose}) => {
   };
 
   const [formData, setFormData] = useState({
+    userId:user._id,
     id: '',
     title: '',
     start: '',
@@ -21,7 +25,17 @@ const CreateEvent = ({onClose}) => {
     describe: '',
   });
 
-  const handleCreateEvent = () => {};
+  const handleCreateEvent = async (e) => {
+    e.preventDefault()
+    try {
+      await createEvent(formData)
+      toast.success(`Event Create For ${user.username}`)
+      
+    } catch (error) {
+      console.log(error)
+      toast.error(error.response.data.message)
+    }
+  };
 
   return (
     <div
@@ -37,8 +51,9 @@ const CreateEvent = ({onClose}) => {
         padding: 20,
       }}
     >
-      <Typography variant="h4">Event Details</Typography>
+      <Typography variant="h4">Create Event For {user.username}</Typography>
       <Box>
+
         <TextField
           fullWidth
           label="Title"
@@ -78,6 +93,7 @@ const CreateEvent = ({onClose}) => {
           onClick={handleCreateEvent}
           variant="contained"
           color="primary"
+          type='submit'
           sx={{ marginRight: '5px' }}
         >
           Create Event
