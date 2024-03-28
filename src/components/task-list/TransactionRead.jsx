@@ -56,8 +56,8 @@ const TransactionRead = ({ user }) => {
                       sx={{
                         padding: '10px 15px',
                         borderRadius: '10px',
-                        backgroundColor: 'red',
                         color: 'white',
+                        background: item.color,
                       }}
                     >
                       {item.textContent}
@@ -78,11 +78,17 @@ const TransactionRead = ({ user }) => {
                           alt=""
                           width={400}
                           height={400}
-                          style={{ borderRadius: '10px' }}
+                          style={{ borderRadius: '10px', objectFit: 'cover' }}
                         />
-                        <Typography>
-                          {/* Display time from createdAt */}
-                          Created At: {new Date(item.createdAt).toLocaleString()}
+                        <Typography
+                          variant="subtitle1"
+                          sx={{ fontSize: '12px', textAlign: 'right' }}
+                        >
+                          {new Date(item.createdAt).toLocaleTimeString([], {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            hour12: true,
+                          })}
                         </Typography>
                       </>
                     )}

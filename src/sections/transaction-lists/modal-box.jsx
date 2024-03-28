@@ -7,6 +7,7 @@ import { countries } from '../user/utils';
 import Checkbox from '@mui/material/Checkbox';
 import Iconify from 'src/components/iconify';
 import { useAuth } from 'src/contexts/auth-context';
+import toast from 'react-hot-toast';
 
 const style = {
   position: 'absolute',
@@ -17,37 +18,69 @@ const style = {
   top: '50%',
   left: '50%',
   transform: 'translate(-50%, -50%)',
-  borderRadius:'10px'
+  borderRadius: '10px',
 };
 
 const FormModal = () => {
-  const { getAllCustomers, customers , loading } = useAuth();
+  const { getAllCustomers, customers, loading , createTransaction } = useAuth();
   React.useEffect(() => {
     getAllCustomers();
   }, []);
   const [filePreview, setFilePreview] = useState(null);
+  const [image, setFile] = useState(null);
+  const [userId , setUserID] = useState(null);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [message, setMessage] = useState('');
+  const [selectedOptions, setSelectedOptions] = useState([]);
   const handleUserChange = (event, value) => {
-    console.log(value); // Log the selected country object
+    setSelectedUser(value);
+    setUserID(value._id);
   };
+  // Log the selected country object
   const handleFileChange = (event) => {
     const file = event.target.files[0];
     if (file) {
       const reader = new FileReader();
       reader.onload = (e) => {
         setFilePreview(e.target.result);
+        setFile(file);
       };
       reader.readAsDataURL(file);
     }
   };
-  const top100Films = [
-    { title: 'The Shawshank Redemption', status: 'completed', color: 'green' },
-    { title: 'The Godfather', status: 'incomplete', color: 'red' },
-    { title: 'The Godfather: Part II', status: 'inprogress', color: 'orange' },
+
+  const handleMessageChange = (event) => {
+    setMessage(event.target.value);
+  };
+
+  const handleOptionsChange = (event, newSelectedOptions) => {
+    setSelectedOptions(newSelectedOptions);
+  };
+
+  const handleSubmit = async(event) => {
+    event.preventDefault();
+  
+    // Extracting selected status and color
+    const status = selectedOptions.map(option => option.status).join(', ');
+    const color = selectedOptions.map(option => option.color).join(', ');
+    
+    const textContent = message
+    const res = await createTransaction(userId , { userId , textContent, image, status, color } )
+    if(res.message === "Task created successfully"){
+      toast.success(res.message)
+    }
+  };
+  
+
+  const statusManagement = [
+    { status: 'Completed', color: '#008000' },
+    { status: 'InComplete', color: '#FF0000' },
+    { status: 'InProcess', color: '#FFA500' },
   ];
   return (
     <Box sx={style} borderRadius={'10px'} border={'none'}>
       <Box>
-        <form action="">
+        <form onSubmit={handleSubmit} encType="multipart/form-data">
           <Typography
             id="modal-modal-title"
             variant="h3"
@@ -62,19 +95,17 @@ const FormModal = () => {
             sx={{ paddingBottom: '10px' }}
             options={customers}
             autoHighlight
-            getOptionLabel={(option) => option.username}
+            getOptionLabel={(option) => option.username || option.email || 'Unknown'}
+            value={selectedUser}
+            onChange={handleUserChange}
             renderOption={(props, option) => (
-              <Box component="li" sx={{ '& > img': { mr: 2, flexShrink: 0 , gap:"10px"} }} {...props}>
-                {/* <img
-                  loading="lazy"
-                  width="20"
-                  // srcSet={`https://flagcdn.com/w40/${option.code.toLowerCase()}.png 2x`}
-                  src={option.avatar}
-                  alt=""
-                /> */}
-                <Avatar alt={option.username} src={option.avatar}/>
-                {option.username} 
-                {/* ({option.code}) +{option.phone} */}
+              <Box
+                component="li"
+                sx={{ '& > img': { mr: 2, flexShrink: 0, gap: '10px' } }}
+                {...props}
+              >
+                <Avatar alt={option.username} src={option.avatar} />
+                {option.username}
               </Box>
             )}
             renderInput={(params) => (
@@ -87,38 +118,36 @@ const FormModal = () => {
                 }}
               />
             )}
-            onChange={handleUserChange}
           />
 
           <TextField
             id="standard-multiline-flexible"
             label="Message"
             multiline
-            variant="standard"
             fullWidth
             sx={{ paddingBottom: '10px' }}
+            value={message}
+            onChange={handleMessageChange}
           />
           <Divider />
-          {filePreview && (
+          {image && (
             <Box sx={{ display: 'flex', justifyContent: 'center', marginTop: '10px' }}>
-              <img
-                src={filePreview}
-                alt="Preview"
-                style={{ maxWidth: '100%', maxHeight: '200px' }}
-              />
+              <img src={filePreview} alt="Preview" style={{ maxWidth: '100%', maxHeight: '200px' }} />
             </Box>
           )}
           <Box sx={{ padding: '15px 0px', width: '100%' }}>
-            <TextField type="file" onChange={handleFileChange} fullWidth />
+            <TextField type="file" onChange={handleFileChange} fullWidth name='image' />
           </Box>
 
           <Box sx={{ padding: '15px 0px', width: '100%' }}>
             <Autocomplete
               multiple
               id="checkboxes-tags-demo"
-              options={top100Films}
+              options={statusManagement}
               disableCloseOnSelect
-              getOptionLabel={(option) => option.title}
+              getOptionLabel={(option) => option.status}
+              value={selectedOptions}
+              onChange={handleOptionsChange}
               renderOption={(props, option, { selected }) => (
                 <li {...props} style={{ padding: '5px', marginBottom: '5px' }}>
                   <Checkbox style={{ marginRight: 8, color: option.color }} checked={selected} />
@@ -132,13 +161,7 @@ const FormModal = () => {
             />
           </Box>
 
-          
-          <Button
-            variant="contained"
-            color="inherit"
-            
-        
-          >
+          <Button variant="contained" color="inherit" type="submit">
             Create
           </Button>
         </form>

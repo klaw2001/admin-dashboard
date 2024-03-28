@@ -188,6 +188,23 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const createTransaction = async (userId, formData) => {
+    console.log(formData)
+    try {
+      const res = await axios.post(`${API}/tasks/create-task/${userId}`, formData, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'multipart/form-data',
+          'Cache-Control': 'no-cache', // Add this header to avoid caching
+          Pragma: 'no-cache',
+        },
+      });
+      return res.data;
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   const getSingleTransactionList = async (userId) => {
     try {
       const res = await axios.get(`${API}/tasks/task/${userId}`, {
@@ -222,7 +239,6 @@ export const AuthProvider = ({ children }) => {
   };
 
   const updateEvent = async (id, formData) => {
-    
     try {
       const res = await axios.put(
         `${API}/events/${id}/update`,
@@ -261,7 +277,8 @@ export const AuthProvider = ({ children }) => {
       transactions,
       getAllEvents,
       myevents,
-      updateEvent
+      updateEvent,
+      createTransaction,
     }),
     [
       login,
@@ -279,7 +296,8 @@ export const AuthProvider = ({ children }) => {
       transactions,
       getAllEvents,
       myevents,
-      updateEvent
+      updateEvent,
+      createTransaction,
     ]
   );
 

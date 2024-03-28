@@ -32,7 +32,6 @@ export default function MyCalendar() {
   };
 
   const handleEventClick = (arg) => {
-    // Set the selected event when an event is clicked
     setSelectedEvent(arg.event);
     const startDate = new Date(arg.event.startStr).toISOString().slice(0, 16);
     const endDate = new Date(arg.event.endStr).toISOString().slice(0, 16);
@@ -55,42 +54,33 @@ export default function MyCalendar() {
   };
   const handleUpdateEvent = async () => {
     try {
-      // Validate the start and end dates
       const startDate = new Date(formData.start);
       const endDate = new Date(formData.end);
   
-      // Check if the dates are valid
       if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-        // Handle invalid dates
         console.error('Invalid start or end date');
         return;
       }
   
-      // Make sure end date is after start date
       if (endDate <= startDate) {
         console.error('End date must be after start date');
         return;
       }
   
-      // Format the dates to ISO 8601 format
       const formattedStartDate = startDate.toISOString();
       const formattedEndDate = endDate.toISOString();
   
-      // Update the formData with the formatted dates
       setFormData({
         ...formData,
         start: formattedStartDate,
         end: formattedEndDate,
       });
   
-      // Make API call to update the event
       const updatedEvent = await updateEvent(formData.id, formData);
       console.log('Updated event:', updatedEvent);
-      // Close the modal after updating
       handleCloseModal();
     } catch (error) {
       console.error('Error updating event:', error.message);
-      // Handle error
     }
   };
   
@@ -104,9 +94,9 @@ export default function MyCalendar() {
         initialView="dayGridMonth"
         selectable={true}
         dateClick={handleDateClick}
-        events={myevents} // Use myevents directly
+        events={myevents} 
         editable={true}
-        eventClick={handleEventClick} // Handle event click
+        eventClick={handleEventClick} 
       />
       <Modal open={modalOpen} onClose={handleCloseModal}>
         <div
