@@ -33,7 +33,7 @@ const EventView = () => {
     if (userId) {
       getAllEvents(userId);
     }
-  }, [userId , myevents]);
+  }, [userId ]);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
   return (

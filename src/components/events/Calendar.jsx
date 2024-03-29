@@ -9,7 +9,7 @@ export default function MyCalendar() {
   const { getAllEvents, myevents , updateEvent } = useAuth();
   useEffect(() => {
     getAllEvents();
-  }, [myevents]);
+  }, []);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState('');

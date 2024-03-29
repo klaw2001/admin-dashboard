@@ -18,7 +18,7 @@ const CreateEvent = ({onClose , user}) => {
 
   const [formData, setFormData] = useState({
     userId:user._id,
-    id: '',
+    // id: '',
     title: '',
     start: '',
     end: '',
