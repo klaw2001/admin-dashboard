@@ -15,7 +15,7 @@ const RecordsView = () => {
           </Button>
         </Stack>
         <Card>
-            <RecordTable/>
+          <RecordTable />
         </Card>
       </Container>
     </>

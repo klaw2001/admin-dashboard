@@ -35,7 +35,7 @@ export default function Router() {
         { element: <IndexPage />, index: true },
         { path: 'user', element: <UserPage /> },
         { path: 'records', element: <RecordsPage /> },
-        // { path: 'chats', element: <ChatPage /> },
+        { path: 'chats', element: <ChatPage /> },
         { path: 'products', element: <ProductsPage /> },
         { path: 'blog', element: <BlogPage /> },
         { path: 'transaction-lists', element: <TransactionListPage /> },

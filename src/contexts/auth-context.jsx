@@ -1,6 +1,6 @@
 import axios from 'axios';
 import PropTypes from 'prop-types';
-import { useMemo, useState, useContext, createContext, useEffect } from 'react';
+import { useMemo, useState, useContext, createContext, useEffect, useCallback } from 'react';
 import { io } from 'socket.io-client';
 
 const AuthContext = createContext();
@@ -8,6 +8,7 @@ const ENDPOINT = 'https://chats-app-admin.onrender.com/';
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [userID, setUserID] = useState(null);
   const [chatUsers, setChatUsers] = useState(null);
   const [chats, setChats] = useState(null);
   const [message, setMessage] = useState(null);
@@ -19,8 +20,8 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   const API = 'https://chats-app-0uxf.onrender.com/api/v1';
-  const AWS = 'http://ec2-52-206-76-43.compute-1.amazonaws.com:8000/api/v1'
-  const AWS_2 = 'http://ec2-52-206-76-43.compute-1.amazonaws.com:8000/api/v2'
+  const AWS = 'http://ec2-52-206-76-43.compute-1.amazonaws.com:8000/api/v1';
+  const AWS_2 = 'http://ec2-52-206-76-43.compute-1.amazonaws.com:8000/api/v2';
   const [socket, setSocket] = useState(null);
   useEffect(() => {
     const token = localStorage.getItem('accessToken');
@@ -56,6 +57,7 @@ export const AuthProvider = ({ children }) => {
       if (response.ok) {
         const userData = await response.json();
         setUser(userData.data.user);
+        setUserID(userData.data.user._id);
         localStorage.setItem('accessToken', userData.data.accessToken);
         localStorage.setItem('userID', userData.data.user._id);
         localStorage.setItem('user', JSON.stringify(userData.data.user));
@@ -107,7 +109,7 @@ export const AuthProvider = ({ children }) => {
   const getAllAvailableUsers = async () => {
     try {
       // const accessToken = window.sessionStorage.getItem("accessToken");
-      const res = await axios.get(`${AWS}/chat-app/chats/users/`, {
+      const res = await axios.get(`${AWS}/chat-app/chats/`, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
@@ -191,7 +193,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const createTransaction = async (userId, formData) => {
-    console.log(formData)
+    console.log(formData);
     try {
       const res = await axios.post(`${AWS}/tasks/create-task/${userId}`, formData, {
         headers: {
@@ -240,50 +242,49 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const createEvent = async(formData) =>{
+  const createEvent = async (formData) => {
     try {
-      const res = await axios.post(`${AWS}/events/create-event`, formData , {
+      const res = await axios.post(`${AWS}/events/create-event`, formData, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
           'Cache-Control': 'no-cache', // Add this header to avoid caching
           Pragma: 'no-cache',
         },
-      })
-      return res.data
+      });
+      return res.data;
     } catch (error) {
-      console.log(error)
+      console.log(error);
+      return null
     }
-  }
+  };
 
-  const updateEvent = async (id, formData) => {
-    try {
-      const res = await axios.put(
-        `${AWS}/events/${id}/update`,
-        formData, // Pass formData directly
-        {
+  const updateEvent = useCallback(
+    async (id, formData) => {
+      try {
+        const res = await axios.put(`${AWS}/events/${id}/update`, formData, {
           headers: {
             Authorization: `Bearer ${accessToken}`,
             'Content-Type': 'application/json',
             'Cache-Control': 'no-cache', // Add this header to avoid caching
             Pragma: 'no-cache',
           },
-        }
-      );
-      return res.data; // Return the updated event data
-    } catch (error) {
-      console.log(error);
-      throw error; // Throw the error to handle it in the component
-    }
-  };
+        });
+        return res.data; // Return the updated event data
+      } catch (error) {
+        console.log(error);
+        throw error; // Throw the error to handle it in the component
+      }
+    },
+    [accessToken]
+  );
+  // const getAllRecords = async()=>{
+  //   try {
+  //     const res = await axios.get(`${AWS_2}/`)
+  //   } catch (error) {
 
-  const getAllRecords = async()=>{
-    try {
-      const res = await axios.get(`${AWS_2}/`)
-    } catch (error) {
-      
-    }
-  }
+  //   }
+  // }
   const authValue = useMemo(
     () => ({
       login,
@@ -294,6 +295,7 @@ export const AuthProvider = ({ children }) => {
       sendMessageinChat,
       initializeSocket,
       user,
+      userID,
       customers,
       chatUsers,
       chats,
@@ -305,7 +307,7 @@ export const AuthProvider = ({ children }) => {
       myevents,
       updateEvent,
       createTransaction,
-      createEvent
+      createEvent,
     }),
     [
       login,
@@ -314,18 +316,21 @@ export const AuthProvider = ({ children }) => {
       getAllAvailableUsers,
       getAllSingleUserChats,
       sendMessageinChat,
+      initializeSocket,
       user,
+      userID,
       customers,
       chatUsers,
       chats,
       setChats,
+      loading,
       getSingleTransactionList,
       transactions,
       getAllEvents,
       myevents,
       updateEvent,
       createTransaction,
-      createEvent
+      createEvent,
     ]
   );
 
