@@ -65,7 +65,7 @@ export default function ChatList({ currentChat }) {
                         chat?.content ||
                         (chat?.attachments?.length > 0 ? chat?.attachments?.url : '')
                       }
-                      secondary={getTimeDifference(chat?.createdAt)}
+                      // secondary={getTimeDifference(chat?.createdAt)}
                       sx={{
                         width: 'fit-content',
                         borderRadius: '10px',
@@ -82,6 +82,7 @@ export default function ChatList({ currentChat }) {
           </>
         )}
       </List>
+     
     </>
   );
 }

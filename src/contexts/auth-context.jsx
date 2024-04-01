@@ -21,6 +21,7 @@ export const AuthProvider = ({ children }) => {
 
   const API = 'https://chats-app-0uxf.onrender.com/api/v1';
   const AWS = 'http://ec2-52-206-76-43.compute-1.amazonaws.com:8000/api/v1';
+  const AWS_SOCKET = 'http://ec2-52-206-76-43.compute-1.amazonaws.com:8000/';
   const AWS_2 = 'http://ec2-52-206-76-43.compute-1.amazonaws.com:8000/api/v2';
   const [socket, setSocket] = useState(null);
   useEffect(() => {
@@ -34,13 +35,13 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     if (socket) {
-      socket.on('messageReceived', (data) => {
+      socket.on('message recieved', (data) => {
         console.log('Message received:', data);
         setChats((prevChats) => [...prevChats, data]);
       });
-      return () => {
-        socket.off('messageReceived');
-      };
+      // return () => {
+      //   socket.off('messageReceived');
+      // };
     }
   }, [socket]);
 
@@ -122,7 +123,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   function initializeSocket() {
-    const newSocket = io('https://chatsapp-nw05.onrender.com', {
+    const newSocket = io(AWS_SOCKET, {
       headers: {
         auth: { accessToken },
         withCredentials: true,
@@ -158,37 +159,23 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const sendMessageinChat = async (chatId, content, e) => {
-    e.preventDefault();
+  const sendMessageinChat = async (userId, chatId, content) => {
     try {
-      // Emit the new message to the socket server
-      socket.emit('recievedMessage', { chat: chatId, content });
-
-      // Send the new message to the AWS
-      const res = await axios.post(`${AWS}/chat-app/messages/${chatId}`, content, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      // Add the new message to the existing chat messages
-      const updatedChats = chats.map((chat) => {
-        if (chat._id === chatId) {
-          return {
-            ...chat,
-            messages: [...chat.messages, res.data.data], // Assuming the new message is returned from the AWS response
-          };
+      const res = await axios.post(
+        `${AWS}/dashMsg`,
+        { userId, chatId, content },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
         }
-        return chat;
-      });
-
-      // Update the chats state with the modified chat
-      setChats(updatedChats);
-      getAllSingleUserChats(chatId);
+      );
+      socket.emit("new message", res.data.data)
+      setChats([...chats , res.data.data]);
+      // return res.data.data
     } catch (error) {
       console.error('Error sending message:', error);
-      // Handle error appropriately
     }
   };
 
@@ -255,7 +242,7 @@ export const AuthProvider = ({ children }) => {
       return res.data;
     } catch (error) {
       console.log(error);
-      return null
+      return null;
     }
   };
 
@@ -308,9 +295,11 @@ export const AuthProvider = ({ children }) => {
       updateEvent,
       createTransaction,
       createEvent,
+      socket,
     }),
     [
       login,
+      socket,
       logout,
       getAllCustomers,
       getAllAvailableUsers,

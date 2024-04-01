@@ -13,83 +13,187 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import { useAuth } from 'src/contexts/auth-context';
 import ChatList from './chat-list';
-import { Avatar, ListItemAvatar } from '@mui/material';
+import { Avatar, Button, ListItemAvatar, TextField } from '@mui/material';
+import Iconify from 'src/components/iconify';
+import axios from 'axios';
+import { useState } from 'react';
+import { io } from 'socket.io-client';
 
 const drawerWidth = 240;
-
+// var socket, selectedChatCompare;
 export default function ChatDrawer() {
-  const { getAllAvailableUsers, chatUsers } = useAuth();
-  const [currentChat, setCurrentChat] = React.useState(null);
+  const {
+    getAllAvailableUsers,
+    chatUsers,
+    chats,
+    setChats,
+  } = useAuth();
+  const ENDPOINT = "http://ec2-52-206-76-43.compute-1.amazonaws.com:8000/";
+  const [user, setUser] = useState(null);
+  const [socket, setSocket] = useState(null);
+  const [content, setContent] = useState("");
+  const [currentChat, setCurrentChat] = useState({
+    chatID: "",
+    userID: "",
+  });
+  const [messageData, setMessageData] = React.useState(null);
+  React.useEffect(()=>{
+    getAllAvailableUsers()
+  },[])
   React.useEffect(() => {
-    getAllAvailableUsers();
+    const userString = localStorage.getItem("user");
+    if (userString) {
+      const userObject = JSON.parse(userString);
+      setUser(userObject);
+    }
+
+    // Connect to the socket.io server
+    const newSocket = io(ENDPOINT);
+    setSocket(newSocket);
+
+    return () => {
+      // Cleanup socket connection
+      if (newSocket) {
+        newSocket.disconnect();
+      }
+    };
   }, []);
 
-  const onCLickHandler = (userID) => {
-      setCurrentChat(userID);
-    
+  const userID = localStorage.getItem("userID");
+  const accessToken = localStorage.getItem("accessToken");
+  const sendMessageHandler = async () => {
+
+    const messageData = {
+      userId: userID,
+      chatId: currentChat.chatID,
+      content: content,
+    };
+
+    try {
+      // Send message data to the backend
+      await axios.post(
+        "http://ec2-52-206-76-43.compute-1.amazonaws.com:8000/api/v1/dashMsg",
+        messageData,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      // Emit new message to socket.io server
+      if (socket) {
+        socket.emit("new message", messageData);
+      }
+
+      // Clear message content
+      setContent("");
+    } catch (error) {
+      console.error("Error sending message:", error);
+    }
   };
-  const userID = localStorage.getItem('userID');
+
+  const onCLickHandler = (userID, chatID) => {
+    setCurrentChat({
+      userID: userID,
+      chatID: chatID,
+    });
+  };
 
   return (
-    <Box sx={{ display: 'flex', height: '500px' }}>
-      <CssBaseline />
-      <AppBar position="absolute" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
-        <Toolbar>
-          <Typography variant="h6" noWrap component="div">
-            Clipped drawer
-          </Typography>
-        </Toolbar>
-      </AppBar>
-      <Drawer
-        variant="permanent"
-        sx={{
-          width: drawerWidth,
-          flexShrink: 0,
-          [`& .MuiDrawer-paper`]: {
-            width: drawerWidth,
-            boxSizing: 'border-box',
-            position: 'absolute',
-          },
-        }}
-      >
-        <Toolbar />
-        <Box sx={{ overflow: 'auto' }}>
-          <List sx={{ borderRadius: '10px', position: 'relative' }}>
-            {chatUsers
-              ?.filter((user) => !user.isGroupChat)
-              .map((user, index) => (
-                <ListItem
-                  key={`${user.participants[0]?._id}-${index}`}
-                  button
-                  onClick={() => onCLickHandler(user._id)}
-                >
-                  <ListItemAvatar>
-                    <Avatar
-                      alt={
-                        user.participants[0]?._id === userID
-                          ? user.participants[1]?.username
-                          : user.username
-                      }
-                      src={user.avatar}
-                    />
-                  </ListItemAvatar>
-                  <ListItemText
-                    primary={
-                      user.participants[0]?._id === userID
-                        ? user.participants[1]?.username
-                        : user.participants[0]?.username
-                    }
-                    secondary={user.lastActive}
-                  />
-                </ListItem>
-              ))}
-          </List>
+    <>
+      <Box sx={{ height: '600px', position: 'relative' }}>
+        <Box sx={{ display: 'flex', height: '500px' }}>
+          <CssBaseline />
+          <AppBar position="absolute" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
+            <Toolbar>
+              <Typography variant="h6" noWrap component="div">
+                Clipped drawer
+              </Typography>
+            </Toolbar>
+          </AppBar>
+          <Drawer
+            variant="permanent"
+            sx={{
+              width: drawerWidth,
+              flexShrink: 0,
+              [`& .MuiDrawer-paper`]: {
+                width: drawerWidth,
+                boxSizing: 'border-box',
+                position: 'absolute',
+              },
+            }}
+          >
+            <Toolbar />
+            <Box sx={{ overflow: 'auto' }}>
+              <List sx={{ borderRadius: '10px', position: 'relative' }}>
+                {chatUsers
+                  ?.filter((user) => !user.isGroupChat)
+                  .map((user, index) => (
+                    <ListItem
+                      key={`${user.participants[0]?._id}-${index}`}
+                      button
+                      onClick={() => onCLickHandler(user._id, user.lastMessage.chat)}
+                    >
+                      <ListItemAvatar>
+                        <Avatar
+                          alt={
+                            user.participants[0]?._id === userID
+                              ? user.participants[1]?.username
+                              : user.username
+                          }
+                          src={user.avatar}
+                        />
+                      </ListItemAvatar>
+                      <ListItemText
+                        primary={
+                          user.participants[0]?._id === userID
+                            ? user.participants[1]?.username
+                            : user.participants[0]?.username
+                        }
+                        secondary={user.lastActive}
+                      />
+                    </ListItem>
+                  ))}
+              </List>
+            </Box>
+          </Drawer>
+          <Box component="main" sx={{ flexGrow: 1, p: 3, overflowY: 'scroll' }}>
+            <Toolbar />
+            <ChatList currentChat={currentChat.userID} />
+          </Box>
         </Box>
-      </Drawer>
-      <Box component="main" sx={{ flexGrow: 1, p: 3 , overflowY:"scroll"}}>
-        <Toolbar />
-        <ChatList currentChat={currentChat} />
+        <Box
+          sx={{
+            position: 'absolute',
+            bottom: '0',
+            zIndex: '9999',
+            right: '0',
+            left: '21%',
+            padding: '1rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+          }}
+        >
+          <TextField
+            type="text"
+            fullWidth
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+          />
+          <Button
+            onClick={sendMessageHandler}
+            variant="contained"
+            color="inherit"
+            type="submit"
+            startIcon={<Iconify icon="eva:plus-fill" />}
+          >
+            Send
+          </Button>
+        </Box>
       </Box>
-    </Box>
+    </>
   );
 }
