@@ -153,13 +153,8 @@ export const AuthProvider = ({ children }) => {
         },
       });
       const singleUserChats = res.data.data;
-      if(chats.length > 0){
-
-        setChats([...chats , singleUserChats]);
-      }else{
-        setChats(singleUserChats)
-      }
-
+      setChats(singleUserChats)
+    
       // return singleUserChats;
     } catch (error) {
       console.error('Error fetching all chats:', error);

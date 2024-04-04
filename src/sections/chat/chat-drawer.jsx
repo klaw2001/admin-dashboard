@@ -45,7 +45,7 @@ export default function ChatDrawer() {
 
 
   React.useEffect(() => {
-    const ENDPOINT = 'http://localhost:8000';
+    const ENDPOINT = 'https://chats-app-0uxf.onrender.com';
     const user = JSON.parse(localStorage.getItem('user'));
 
     const newSocket = io(ENDPOINT , {
@@ -89,7 +89,7 @@ export default function ChatDrawer() {
     try {
       // Send message data to the backend
       const res = await axios.post(
-        `http://localhost:8000/api/v1/chat-app/messages/${currentChat.chatID}`,
+        `https://chats-app-0uxf.onrender.com/api/v1/chat-app/messages/${currentChat.chatID}`,
         messageData,
         {
           headers: {

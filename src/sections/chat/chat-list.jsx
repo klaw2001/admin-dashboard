@@ -18,7 +18,7 @@ export default function ChatList({ currentChat, socket }) {
   const id = localStorage.getItem('userID');
 
   const getUserChats = async () => {
-    if (currentChat !== null) {
+    if (currentChat !== "") {
       await getAllSingleUserChats(currentChat);
       setLoadingChats(false);
     }
