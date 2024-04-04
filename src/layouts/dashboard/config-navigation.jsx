@@ -20,7 +20,7 @@ const navConfig = [
   {
     title: 'Records',
     path: '/records',
-    icon: icon('ic_user'),
+    icon: icon('ic_record'),
   },
   {
     title: 'chats',
@@ -30,12 +30,12 @@ const navConfig = [
   {
     title: 'transaction list',
     path: '/transaction-lists',
-    icon: icon('ic_chat'),
+    icon: icon('ic_event'),
   },
   {
     title: 'Events',
     path: '/events-calender',
-    icon: icon('ic_chat'),
+    icon: icon('ic_calendar'),
   },
   {
     title: 'product',

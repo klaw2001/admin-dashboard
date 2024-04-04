@@ -22,83 +22,108 @@ import { io } from 'socket.io-client';
 const drawerWidth = 240;
 // var socket, selectedChatCompare;
 export default function ChatDrawer() {
-  const {
-    getAllAvailableUsers,
-    chatUsers,
-    chats,
-    setChats,
-  } = useAuth();
-  const ENDPOINT = "http://ec2-52-206-76-43.compute-1.amazonaws.com:8000/";
+  const { getAllAvailableUsers, chatUsers, chats, setChats , getAllSingleUserChats} = useAuth();
+  const ENDPOINT = 'http://ec2-52-206-76-43.compute-1.amazonaws.com:8000/';
   const [user, setUser] = useState(null);
   const [socket, setSocket] = useState(null);
-  const [content, setContent] = useState("");
+  const [socketConnected, setSocketConnected] = useState(false);
+  const [content, setContent] = useState('');
   const [currentChat, setCurrentChat] = useState({
-    chatID: "",
-    userID: "",
+    chatID: '',
+    userID: '',
   });
   const [messageData, setMessageData] = React.useState(null);
-  React.useEffect(()=>{
-    getAllAvailableUsers()
-  },[])
   React.useEffect(() => {
-    const userString = localStorage.getItem("user");
-    if (userString) {
-      const userObject = JSON.parse(userString);
-      setUser(userObject);
-    }
+    getAllAvailableUsers();
+  }, []);
+  React.useEffect(() => {
+    const ENDPOINT = 'http://ec2-52-206-76-43.compute-1.amazonaws.com:8000/';
+    const user = JSON.parse(localStorage.getItem('user'));
 
-    // Connect to the socket.io server
     const newSocket = io(ENDPOINT);
     setSocket(newSocket);
 
+    newSocket.on('connect', () => {
+      console.log('Socket connected successfully!', newSocket);
+      newSocket.emit('setup', user);
+    });
+
+    newSocket.on('message recieved', (newMessageRecieved) => {
+      setChats([...chats, newMessageRecieved]);
+      console.log(newMessageRecieved, 'msg rcd');
+    });
+
+    newSocket.on('connected', () => {
+      console.log('Socket setup completed.');
+    });
+
     return () => {
-      // Cleanup socket connection
-      if (newSocket) {
-        newSocket.disconnect();
-      }
+      newSocket.disconnect();
     };
   }, []);
 
-  const userID = localStorage.getItem("userID");
-  const accessToken = localStorage.getItem("accessToken");
+ 
+
+  const userID = localStorage.getItem('userID');
+  const accessToken = localStorage.getItem('accessToken');
   const sendMessageHandler = async () => {
+    if (!currentChat) return; // No chat selected
 
     const messageData = {
       userId: userID,
       chatId: currentChat.chatID,
       content: content,
     };
-
+    console.log(messageData)
     try {
       // Send message data to the backend
-      await axios.post(
-        "http://ec2-52-206-76-43.compute-1.amazonaws.com:8000/api/v1/dashMsg",
+      const res = await axios.post(
+        'http://ec2-52-206-76-43.compute-1.amazonaws.com:8000/api/v1/dashMsg',
         messageData,
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "application/json",
+            'Content-Type': 'application/json',
           },
         }
       );
+      if(res.status === 200){
+        getAllSingleUserChats(currentChat.userID)
+      }
 
-      // Emit new message to socket.io server
       if (socket) {
-        socket.emit("new message", messageData);
+        socket.emit('new message', res.data);
+        // console.log(socket , "mesg pathavla")
+        socket.on('message recieved', (newMessageRecieved) => {
+          setChats([...chats, newMessageRecieved]);
+          console.log(newMessageRecieved, 'msg rcd');
+        });
       }
 
       // Clear message content
-      setContent("");
+      setChats((prevChats) => [...prevChats, res.data]);
+      setContent('');
     } catch (error) {
-      console.error("Error sending message:", error);
+      console.error('Error sending message:', error);
     }
   };
+  React.useEffect(() => {
+    if (socket) {
+      // console.log('recieving');
 
+      socket.on('messageReceived', (newMessageRecieved) => {
+        setChats([...chats, newMessageRecieved]);
+        console.log(newMessageRecieved, 'msg rcd');
+        console.log('recieving done');
+      });
+    }
+  },[sendMessageHandler]);
   const onCLickHandler = (userID, chatID) => {
     setCurrentChat({
       userID: userID,
       chatID: chatID,
     });
+    socket.emit('join chat', chatID);
   };
 
   return (
@@ -161,7 +186,7 @@ export default function ChatDrawer() {
           </Drawer>
           <Box component="main" sx={{ flexGrow: 1, p: 3, overflowY: 'scroll' }}>
             <Toolbar />
-            <ChatList currentChat={currentChat.userID} />
+            <ChatList currentChat={currentChat.userID} socket={socket} />
           </Box>
         </Box>
         <Box

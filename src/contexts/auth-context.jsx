@@ -2,6 +2,7 @@ import axios from 'axios';
 import PropTypes from 'prop-types';
 import { useMemo, useState, useContext, createContext, useEffect, useCallback } from 'react';
 import { io } from 'socket.io-client';
+import { useRouter } from 'src/routes/hooks';
 
 const AuthContext = createContext();
 const ENDPOINT = 'https://chats-app-admin.onrender.com/';
@@ -17,9 +18,11 @@ export const AuthProvider = ({ children }) => {
   const [loggedinUser, setLoggedinUser] = useState({});
   const [transactions, setTransactions] = useState([]);
   const [myevents, setEvents] = useState([]);
+  const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
-
+  const router = useRouter();
   const API = 'https://chats-app-0uxf.onrender.com/api/v1';
+  const API_2 = 'https://chats-app-0uxf.onrender.com/api/v2';
   const AWS = 'http://ec2-52-206-76-43.compute-1.amazonaws.com:8000/api/v1';
   const AWS_SOCKET = 'http://ec2-52-206-76-43.compute-1.amazonaws.com:8000/';
   const AWS_2 = 'http://ec2-52-206-76-43.compute-1.amazonaws.com:8000/api/v2';
@@ -47,7 +50,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const response = await fetch(`${AWS}/users/login`, {
+      const response = await fetch(`${API}/users/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -75,15 +78,15 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      const res = await axios.post(`${AWS}/users/logout`, null, {
+      await axios.post(`${API}/users/logout`, null, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
       });
       localStorage.removeItem('accessToken');
       setUser(null);
-      setCustomers(null); // Reset customers on logout
-      return res;
+      setCustomers(null);
+      router.push('/login');
     } catch (error) {
       console.error('Logout error:', error.message);
     }
@@ -153,7 +156,7 @@ export const AuthProvider = ({ children }) => {
 
       setChats(singleUserChats);
 
-      return singleUserChats;
+      // return singleUserChats;
     } catch (error) {
       console.error('Error fetching all chats:', error);
     }
@@ -171,8 +174,8 @@ export const AuthProvider = ({ children }) => {
           },
         }
       );
-      socket.emit("new message", res.data.data)
-      setChats([...chats , res.data.data]);
+      socket.emit('new message', res.data.data);
+      return res.data.data;
       // return res.data.data
     } catch (error) {
       console.error('Error sending message:', error);
@@ -265,13 +268,22 @@ export const AuthProvider = ({ children }) => {
     },
     [accessToken]
   );
-  // const getAllRecords = async()=>{
-  //   try {
-  //     const res = await axios.get(`${AWS_2}/`)
-  //   } catch (error) {
-
-  //   }
-  // }
+  const getAllRecords = async () => {
+    try {
+      const res = await axios.get(`${API_2}/license/all`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'multipart/form-data',
+          'Cache-Control': 'no-cache', // Add this header to avoid caching
+          Pragma: 'no-cache',
+        },
+      });
+      setLoading(false)
+      setRecords(res.data.data);
+    } catch (error) {
+      console.log(error);
+    }
+  };
   const authValue = useMemo(
     () => ({
       login,
@@ -296,6 +308,8 @@ export const AuthProvider = ({ children }) => {
       createTransaction,
       createEvent,
       socket,
+      getAllRecords,
+      records,
     }),
     [
       login,
@@ -320,6 +334,8 @@ export const AuthProvider = ({ children }) => {
       updateEvent,
       createTransaction,
       createEvent,
+      getAllRecords,
+      records,
     ]
   );
 

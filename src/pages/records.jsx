@@ -8,7 +8,7 @@ export default function RecordsPage() {
   return (
     <>
       <Helmet>
-        <title> Products | Minimal UI </title>
+        <title> Records | Realax </title>
       </Helmet>
 
       <RecordsView />

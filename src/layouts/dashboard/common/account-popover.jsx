@@ -58,12 +58,9 @@ export default function AccountPopover() {
   };
 
   const handlelogout = async()=>{
-    const res = await logout()
+     await logout()
 
-    if(res.status === 200){
-      toast.success("Logout Successfull")
-      router.push("/login")
-    }
+ 
   }
 
   return (
