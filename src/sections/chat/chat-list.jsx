@@ -27,17 +27,9 @@ export default function ChatList({ currentChat, socket }) {
   useEffect(() => {
     getUserChats();
   }, [currentChat]);
-  useEffect(() => {
-    if (socket) {
-      getUserChats();
 
-      socket.on('message recieved', (newMessageRecieved) => {
-        setChats([...chats, newMessageRecieved]);
-        console.log(newMessageRecieved, 'msg rcd');
-        console.log('recieving done');
-      });
-    }
-  }, []);
+
+ 
   return (
     <List
       sx={{
@@ -58,11 +50,11 @@ export default function ChatList({ currentChat, socket }) {
             <>
               {chats?.map((chat, ind) => (
                 <ListItem
-                  key={chat._id}
-                  sx={{
-                    textAlign: id === chat?.sender?._id ? 'right' : 'left',
-                    marginBottom: '2px',
-                  }}
+                key={chat._id}
+                sx={{
+                  textAlign: id === chat?.sender?._id ? 'right' : 'left',
+                  marginBottom: '2px',
+                }}
                 >
                   <ListItemAvatar
                     sx={{

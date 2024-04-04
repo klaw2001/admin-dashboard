@@ -11,7 +11,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [userID, setUserID] = useState(null);
   const [chatUsers, setChatUsers] = useState(null);
-  const [chats, setChats] = useState(null);
+  const [chats, setChats] = useState([]);
   const [message, setMessage] = useState(null);
   const [customers, setCustomers] = useState(null);
   const [accessToken, setAccessToken] = useState(null);
@@ -23,7 +23,7 @@ export const AuthProvider = ({ children }) => {
   const router = useRouter();
   const API = 'https://chats-app-0uxf.onrender.com/api/v1';
   const API_2 = 'https://chats-app-0uxf.onrender.com/api/v2';
-  const AWS = 'http://ec2-52-206-76-43.compute-1.amazonaws.com:8000/api/v1';
+  const AWS = 'http://ec2-52-206-76-43.compute-1.amazonAPI.com:8000/api/v1';
   const AWS_SOCKET = 'http://ec2-52-206-76-43.compute-1.amazonaws.com:8000/';
   const AWS_2 = 'http://ec2-52-206-76-43.compute-1.amazonaws.com:8000/api/v2';
   const [socket, setSocket] = useState(null);
@@ -94,7 +94,7 @@ export const AuthProvider = ({ children }) => {
 
   const getAllCustomers = async () => {
     try {
-      const res = await axios.get(`${AWS}/chat-app/chats/users`, {
+      const res = await axios.get(`${API}/chat-app/chats/users`, {
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${accessToken}`,
@@ -113,7 +113,7 @@ export const AuthProvider = ({ children }) => {
   const getAllAvailableUsers = async () => {
     try {
       // const accessToken = window.sessionStorage.getItem("accessToken");
-      const res = await axios.get(`${AWS}/chat-app/chats/`, {
+      const res = await axios.get(`${API}/chat-app/chats/`, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
@@ -126,7 +126,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   function initializeSocket() {
-    const newSocket = io(AWS_SOCKET, {
+    const newSocket = io(API_SOCKET, {
       headers: {
         auth: { accessToken },
         withCredentials: true,
@@ -147,14 +147,18 @@ export const AuthProvider = ({ children }) => {
 
   const getAllSingleUserChats = async (chatId) => {
     try {
-      const res = await axios.get(`${AWS}/chat-app/messages/${chatId}`, {
+      const res = await axios.get(`${API}/chat-app/messages/${chatId}`, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
       });
       const singleUserChats = res.data.data;
+      if(chats.length > 0){
 
-      setChats(singleUserChats);
+        setChats([...chats , singleUserChats]);
+      }else{
+        setChats(singleUserChats)
+      }
 
       // return singleUserChats;
     } catch (error) {
@@ -165,7 +169,7 @@ export const AuthProvider = ({ children }) => {
   const sendMessageinChat = async (userId, chatId, content) => {
     try {
       const res = await axios.post(
-        `${AWS}/dashMsg`,
+        `${API}/dashMsg`,
         { userId, chatId, content },
         {
           headers: {
@@ -185,7 +189,7 @@ export const AuthProvider = ({ children }) => {
   const createTransaction = async (userId, formData) => {
     console.log(formData);
     try {
-      const res = await axios.post(`${AWS}/tasks/create-task/${userId}`, formData, {
+      const res = await axios.post(`${API}/tasks/create-task/${userId}`, formData, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
           'Content-Type': 'multipart/form-data',
@@ -201,7 +205,7 @@ export const AuthProvider = ({ children }) => {
 
   const getSingleTransactionList = async (userId) => {
     try {
-      const res = await axios.get(`${AWS}/tasks/task/${userId}`, {
+      const res = await axios.get(`${API}/tasks/task/${userId}`, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
@@ -218,7 +222,7 @@ export const AuthProvider = ({ children }) => {
 
   const getAllEvents = async (userId) => {
     try {
-      const res = await axios.get(`${AWS}/events/all-events/${userId}`, {
+      const res = await axios.get(`${API}/events/all-events/${userId}`, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
@@ -234,7 +238,7 @@ export const AuthProvider = ({ children }) => {
 
   const createEvent = async (formData) => {
     try {
-      const res = await axios.post(`${AWS}/events/create-event`, formData, {
+      const res = await axios.post(`${API}/events/create-event`, formData, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
@@ -252,7 +256,7 @@ export const AuthProvider = ({ children }) => {
   const updateEvent = useCallback(
     async (id, formData) => {
       try {
-        const res = await axios.put(`${AWS}/events/${id}/update`, formData, {
+        const res = await axios.put(`${API}/events/${id}/update`, formData, {
           headers: {
             Authorization: `Bearer ${accessToken}`,
             'Content-Type': 'application/json',

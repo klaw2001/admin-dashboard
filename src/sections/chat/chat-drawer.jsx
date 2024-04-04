@@ -23,7 +23,6 @@ const drawerWidth = 240;
 // var socket, selectedChatCompare;
 export default function ChatDrawer() {
   const { getAllAvailableUsers, chatUsers, chats, setChats , getAllSingleUserChats} = useAuth();
-  const ENDPOINT = 'http://ec2-52-206-76-43.compute-1.amazonaws.com:8000/';
   const [user, setUser] = useState(null);
   const [socket, setSocket] = useState(null);
   const [socketConnected, setSocketConnected] = useState(false);
@@ -33,24 +32,37 @@ export default function ChatDrawer() {
     userID: '',
   });
   const [messageData, setMessageData] = React.useState(null);
+  const userID = localStorage.getItem('userID');
+  const accessToken = localStorage.getItem('accessToken');
+
+
+
   React.useEffect(() => {
     getAllAvailableUsers();
   }, []);
+
+
+
+
   React.useEffect(() => {
-    const ENDPOINT = 'http://ec2-52-206-76-43.compute-1.amazonaws.com:8000/';
+    const ENDPOINT = 'http://localhost:8000';
     const user = JSON.parse(localStorage.getItem('user'));
 
-    const newSocket = io(ENDPOINT);
+    const newSocket = io(ENDPOINT , {
+      auth: {
+        token: accessToken, // Replace with your actual token
+      }},);
     setSocket(newSocket);
 
-    newSocket.on('connect', () => {
-      console.log('Socket connected successfully!', newSocket);
-      newSocket.emit('setup', user);
-    });
+    // newSocket.on('connection', () => {
+    //   console.log('Socket connected successfully!', newSocket);
+    //   newSocket.emit('setup', user);
+    // });
 
-    newSocket.on('message recieved', (newMessageRecieved) => {
-      setChats([...chats, newMessageRecieved]);
+    newSocket.on('messageReceived', (newMessageRecieved) => {
+      setChats([...chats , newMessageRecieved])
       console.log(newMessageRecieved, 'msg rcd');
+      console.log(chats)
     });
 
     newSocket.on('connected', () => {
@@ -64,8 +76,7 @@ export default function ChatDrawer() {
 
  
 
-  const userID = localStorage.getItem('userID');
-  const accessToken = localStorage.getItem('accessToken');
+  
   const sendMessageHandler = async () => {
     if (!currentChat) return; // No chat selected
 
@@ -78,7 +89,7 @@ export default function ChatDrawer() {
     try {
       // Send message data to the backend
       const res = await axios.post(
-        'http://ec2-52-206-76-43.compute-1.amazonaws.com:8000/api/v1/dashMsg',
+        `http://localhost:8000/api/v1/chat-app/messages/${currentChat.chatID}`,
         messageData,
         {
           headers: {
@@ -87,43 +98,34 @@ export default function ChatDrawer() {
           },
         }
       );
-      if(res.status === 200){
-        getAllSingleUserChats(currentChat.userID)
-      }
+      // if(res.status === 200){
+      //   getAllSingleUserChats(currentChat.userID)
+      // }
 
       if (socket) {
-        socket.emit('new message', res.data);
-        // console.log(socket , "mesg pathavla")
-        socket.on('message recieved', (newMessageRecieved) => {
-          setChats([...chats, newMessageRecieved]);
-          console.log(newMessageRecieved, 'msg rcd');
-        });
+        socket.emit('new-message', res.data);
+        console.log(socket , "mesg sent")
+        // socket.on('messageReceived', (newMessageRecieved) => {
+        //   setChats([...chats, newMessageRecieved]);
+        //   console.log(newMessageRecieved, 'msg rcd');
+        // });
       }
 
       // Clear message content
-      setChats((prevChats) => [...prevChats, res.data]);
+      // setChats([...chats , res.data])
+
       setContent('');
     } catch (error) {
       console.error('Error sending message:', error);
     }
   };
-  React.useEffect(() => {
-    if (socket) {
-      // console.log('recieving');
-
-      socket.on('messageReceived', (newMessageRecieved) => {
-        setChats([...chats, newMessageRecieved]);
-        console.log(newMessageRecieved, 'msg rcd');
-        console.log('recieving done');
-      });
-    }
-  },[sendMessageHandler]);
+ 
   const onCLickHandler = (userID, chatID) => {
     setCurrentChat({
       userID: userID,
       chatID: chatID,
     });
-    socket.emit('join chat', chatID);
+    socket.emit('joinChat', chatID);
   };
 
   return (
